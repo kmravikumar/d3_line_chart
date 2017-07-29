@@ -17,8 +17,6 @@ function plot_line_graph (dataArray, htmlObjectId, width, height) {
     height = height - margin.top - margin.bottom;
 
     // Determine max data to set the axis limits
-    // This is not a neat fix, but a hack!
-    // D3 adjusts ticks in multiples of 5 - so add 1 if it is a exact multiple
     var maxData = Math.max.apply(Math,dataArray.map(function(d){return d[1];}));
     var minData = Math.min.apply(Math,dataArray.map(function(d){return d[1];}));
     
