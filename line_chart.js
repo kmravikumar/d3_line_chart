@@ -12,7 +12,7 @@ plot_line_graph(dataArray, "#line_chart", 300, 200);
 function plot_line_graph (dataArray, htmlObjectId, width, height) {
 
     // set margins for a nice looking bar chart
-    var margin = {top: 20, right: 10, bottom: 100, left: 20},
+    var margin = {top: 10, right: 20, bottom: 50, left: 20},
     width = width - margin.left - margin.right,
     height = height - margin.top - margin.bottom;
 
@@ -20,19 +20,19 @@ function plot_line_graph (dataArray, htmlObjectId, width, height) {
     // This is not a neat fix, but a hack!
     // D3 adjusts ticks in multiples of 5 - so add 1 if it is a exact multiple
     var maxData = Math.max.apply(Math,dataArray.map(function(d){return d[1];}))
-    if (maxData%5==0){
-        maxData = maxData + 1;
-    }
+    var minData = Math.min.apply(Math,dataArray.map(function(d){return d[1];}))
+    
 
     // Define linear scale for y-axis
-    // Note that the height range is reversed. This
-    // is to make sure that the bars start frmo the bottom rather than the top
+    // Note that the height range is reversed. 
     var heightScale = d3.scaleLinear()
+                            .range([height, margin.top])
+                            // change 0 to minData is required
                             .domain([0,maxData])
-                            .range([height, 0])
                             ;
 
     // define scale for categorical x-axis
+    // NOTE: The range is from margin.left and not 0.
     var widthScale = d3.scaleBand()
                         .range([margin.left, width])
                         .padding(0.1)
@@ -47,15 +47,14 @@ function plot_line_graph (dataArray, htmlObjectId, width, height) {
 
     var xaxis = d3.axisBottom()
                 .scale(widthScale)
-                .tickSize(3)
+                .tickSize(0)
                 ;
 
-    // Define the canvas which will hole the bar chart
+    // Define the canvas which will hold the chart
     var canvas = d3.select(htmlObjectId)
                     .append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
                     ;
 
      // Define the line and bind it to the data
@@ -64,6 +63,9 @@ function plot_line_graph (dataArray, htmlObjectId, width, height) {
         .y(function(d) {return heightScale(d[1]); })
         .curve(d3.curveLinear);
 
+
+    // Draw line connecting the data points
+    // Do not fill!
     canvas.append("path")
         .data([dataArray])
         .attr("fill", "none")
@@ -73,7 +75,8 @@ function plot_line_graph (dataArray, htmlObjectId, width, height) {
         .attr("stroke-width", 1.5)
         .attr("d", line);
 
-    // Add dots for data points
+
+     // Add dots for data points - Optional
     canvas.selectAll("dot")
         .data(dataArray)
       .enter().append("circle")
@@ -81,6 +84,7 @@ function plot_line_graph (dataArray, htmlObjectId, width, height) {
         .attr("cx", function(d) { return widthScale(d[0]) + widthScale.bandwidth()/2; })
         .attr("cy", function(d) { return heightScale(d[1]); })
         .attr("fill", "steelblue");
+
 
     // Add x-axis to the bar chart canvas
     canvas.append("g")
@@ -94,10 +98,10 @@ function plot_line_graph (dataArray, htmlObjectId, width, height) {
                 .attr("transform", "rotate(-75)" )
                 ;
 
+
     // add y-axis to the bar chart canvas
     canvas.append("g")
                 .call(yaxis)
-                // uncomment if the axis ie needed on the right side of the graph
                 .attr("transform", "translate(" + margin.left +", 0)")
                 .attr("class", "axis y")  
                 ;
