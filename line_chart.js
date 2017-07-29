@@ -1,21 +1,18 @@
 var dataArray = [
                  ['category A',5], ['category B',10], ['Some text ...long C',19], ['D',40],
-                 ['category E',5], ['category F',10], ['Some text ...long G',19], ['H',40],
-                 ['category I',5], ['category J',10], ['Some text ...long K',19], ['L',40],
-                 ['category M',5], ['category N',10], ['Some text ...long O',19], ['P',40],
                  ['category Q',5], ['category R',10], ['Some text ...long S',19], ['T',40]                                                   
                 ];
 
-plot_bar_graph(dataArray, "#bar_chart", 400, 300);
+plot_line_graph(dataArray, "#line_chart", 300, 200);
 
 
-// A function to plot D3 bar chart - Pass in the data array and the html objectId
+// A function to plot D3 line chart - Pass in the data array and the html objectId
 // where the chart needs to be.
 // Also pass the width, height for the plot
-function plot_bar_graph (dataArray, htmlObjectId, width, height) {
+function plot_line_graph (dataArray, htmlObjectId, width, height) {
 
     // set margins for a nice looking bar chart
-    var margin = {top: 20, right: 50, bottom: 100, left: 10},
+    var margin = {top: 20, right: 10, bottom: 100, left: 20},
     width = width - margin.left - margin.right,
     height = height - margin.top - margin.bottom;
 
@@ -37,20 +34,20 @@ function plot_bar_graph (dataArray, htmlObjectId, width, height) {
 
     // define scale for categorical x-axis
     var widthScale = d3.scaleBand()
-                        .range([0, width])
+                        .range([margin.left, width])
                         .padding(0.1)
                         .domain(dataArray.map(function(d) { return d[0]; }))
                         ;
 
-    // define x,y-axes scale and align them bottom and right
-    var yaxis = d3.axisRight()
+    // define x,y-axes scale and align them bottom and left
+    var yaxis = d3.axisLeft()
                 .scale(heightScale)
                 .tickSize(3)
                 ;
 
     var xaxis = d3.axisBottom()
                 .scale(widthScale)
-                .tickSize(0)
+                .tickSize(3)
                 ;
 
     // Define the canvas which will hole the bar chart
@@ -61,28 +58,29 @@ function plot_bar_graph (dataArray, htmlObjectId, width, height) {
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
                     ;
 
-    // add bars to the canvas                
-    var bars = canvas.selectAll("rect")
-                    .data(dataArray)
-                    .enter()
-                        .append("rect")
-                        .attr("class", "bar")
-                        .attr("y", function(d) {return heightScale(d[1]);})
-                        .attr("x", function(d) {return widthScale(d[0]);})
-                        .attr("height", function(d) {return height - heightScale(d[1]);})
-                        .attr("width", widthScale.bandwidth())
-                        .attr("fill", "gray")
-                        .on("mouseover", function(d) {
-                            d3.select(this).attr("fill","red");
-                        })
-                        .on("mouseout", function(d) {
-                            d3.select(this).attr("fill","gray");
-                        })                        
-                        .on("click", function(d) {
-                            console.log(d);
-                        })
-                        ;
+     // Define the line and bind it to the data
+    var line = d3.line()
+        .x(function(d) {return widthScale(d[0]) + widthScale.bandwidth()/2; })
+        .y(function(d) {return heightScale(d[1]); })
+        .curve(d3.curveLinear);
 
+    canvas.append("path")
+        .data([dataArray])
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-linecap", "round")
+        .attr("stroke-width", 1.5)
+        .attr("d", line);
+
+    // Add dots for data points
+    canvas.selectAll("dot")
+        .data(dataArray)
+      .enter().append("circle")
+        .attr("r", 3.5)
+        .attr("cx", function(d) { return widthScale(d[0]) + widthScale.bandwidth()/2; })
+        .attr("cy", function(d) { return heightScale(d[1]); })
+        .attr("fill", "steelblue");
 
     // Add x-axis to the bar chart canvas
     canvas.append("g")
@@ -99,7 +97,8 @@ function plot_bar_graph (dataArray, htmlObjectId, width, height) {
     // add y-axis to the bar chart canvas
     canvas.append("g")
                 .call(yaxis)
-                .attr("transform", "translate(" + width + ",0)")
+                // uncomment if the axis ie needed on the right side of the graph
+                .attr("transform", "translate(" + margin.left +", 0)")
                 .attr("class", "axis y")  
                 ;
                                 
