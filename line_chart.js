@@ -19,8 +19,8 @@ function plot_line_graph (dataArray, htmlObjectId, width, height) {
     // Determine max data to set the axis limits
     // This is not a neat fix, but a hack!
     // D3 adjusts ticks in multiples of 5 - so add 1 if it is a exact multiple
-    var maxData = Math.max.apply(Math,dataArray.map(function(d){return d[1];}))
-    var minData = Math.min.apply(Math,dataArray.map(function(d){return d[1];}))
+    var maxData = Math.max.apply(Math,dataArray.map(function(d){return d[1];}));
+    var minData = Math.min.apply(Math,dataArray.map(function(d){return d[1];}));
     
 
     // Define linear scale for y-axis
@@ -61,7 +61,8 @@ function plot_line_graph (dataArray, htmlObjectId, width, height) {
     var line = d3.line()
         .x(function(d) {return widthScale(d[0]) + widthScale.bandwidth()/2; })
         .y(function(d) {return heightScale(d[1]); })
-        .curve(d3.curveLinear);
+        .curve(d3.curveLinear)
+        ;
 
 
     // Draw line connecting the data points
@@ -73,17 +74,40 @@ function plot_line_graph (dataArray, htmlObjectId, width, height) {
         .attr("stroke-linejoin", "round")
         .attr("stroke-linecap", "round")
         .attr("stroke-width", 1.5)
-        .attr("d", line);
+        .attr("d", line)
+        ;
+
+    // Define the div for the tooltip
+    // The styling and locations need css definitions.
+    var div = d3.select(htmlObjectId)
+                .append("div")	
+                .attr("class", "tooltip")				
+                .style("opacity", 0);
 
 
-     // Add dots for data points - Optional
+     // Add dots for data points. 
+     // Also includes tooltip
     canvas.selectAll("dot")
         .data(dataArray)
       .enter().append("circle")
         .attr("r", 3.5)
         .attr("cx", function(d) { return widthScale(d[0]) + widthScale.bandwidth()/2; })
         .attr("cy", function(d) { return heightScale(d[1]); })
-        .attr("fill", "steelblue");
+        .attr("fill", "steelblue")
+        .on("mouseover", function(d) {
+            div.transition()
+                .duration(200)
+                .style("opacity", .9);
+            div.html(d[0] + "<br/>" + d[1])
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {		
+            div.transition()		
+                .duration(200)		
+                .style("opacity", 0);	
+        })
+        ;
 
 
     // Add x-axis to the bar chart canvas
